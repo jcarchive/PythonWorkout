@@ -1,5 +1,8 @@
-from random import randint
+import getopt
+import sys
 import atexit
+from random import randint
+
 """
 Instructions
 - Write a function ( guessing_game ) that takes no arguments.
@@ -13,16 +16,11 @@ Instructions
 - The program only exits after the user guesses correctly.
 """
 
-secret_number = randint(1,100)
-
-def exit_handler():
-    print(f"Finishing. The secret_number was {secret_number}")
-
-def guess_number(secret_number):
+def guess_number(secret_number, base):
     try:
-        user_guess = int(input("Input your guess: "))
+        user_guess = int(input("Input your guess: "), base)
     except ValueError as ve:
-        print("Sorry that is not a correct integer.")
+        print(f"Sorry that is not a correct integer base {base}.")
         return False
 
     if user_guess == secret_number:
@@ -34,10 +32,36 @@ def guess_number(secret_number):
         print("Too low")
     return False
 
+def getLimits():
+    min_value = 1
+    max_value = 100
+    base = 10
+    opts, args = getopt.getopt(sys.argv[1:],"s:e:b:",["--start=","--end=", "--base="])
+    for option, value in opts:
+        if option == '-b' or option == '--base=':
+            if not str.isdigit(value):
+                print(f"{value} is not a valid base. Ignoring option")
+            else:
+                base = int(value)
+        if option == '-s' or option == '--start=':
+            min_value_str = value;
+        elif option == '-e' or option == '--end=':
+            max_value_str = value
+    try:
+        min_value = int(min_value_str, base)
+        max_value = int(max_value_str, base)
+        return (base, min_value, max_value)
+    except ValueError as ve:
+        print("There was a format error in the inputs. Falling back to defualts")
+        return (10, 1, 100)
+
+
 def main():
-    atexit.register(exit_handler)
+    base, min_value, max_value = getLimits()
+    secret_number = randint(min_value, max_value)
+
     attempts = 1
-    while(not guess_number(secret_number)):
+    while(not guess_number(secret_number, base)):
         print(f"Attempt: {attempts}")
         attempts += 1
     print(f"Game finished in {attempts} attemps.")
